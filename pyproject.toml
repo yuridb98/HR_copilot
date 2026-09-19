@@ -7,7 +7,11 @@ authors = [
     { name = "Yuri Di Biasi", email = "yuridibiasi@hotmail.it" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "pyyaml>=6.0.3",
+]
 
 [project.scripts]
 hr-copilot = "hr_copilot:main"
@@ -22,6 +26,7 @@ dev = [
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "ruff>=0.16.8",
+    "types-pyyaml>=6.0.12.20260906",
 ]
 
 [tool.ruff]

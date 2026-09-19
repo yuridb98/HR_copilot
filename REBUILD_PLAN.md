@@ -48,10 +48,14 @@ non sai spiegare — anche se il codice funziona.
    non sai dire *perché* esiste il file, non scriverlo ancora.
 3. **Test prima**, dove il pezzo è una funzione pura (chunking, citazioni, guardrails, registry,
    config). Altrove (DB, grafo, API) il test viene subito dopo, mai "poi".
-4. **Scrivi il codice tu.** *Regola dei 20 minuti*: bloccato più di 20 minuti → chiedi a me, e la
-   domanda che mi fai conta quanto il codice: se chiedi "dammi la funzione" non hai capito il
-   problema, se chiedi "perché qui uso X e non Y" stai facendo esattamente il lavoro giusto.
-   **Durante lo step non apri il repo di riferimento.**
+4. **Scrivi tu il codice, ma guidato riga per riga.** Non solo specifica astratta: ti do il codice
+   completo in chat, file per file, con la spiegazione del perché di ogni pezzo non ovvio — tu lo
+   copi a mano nei file (non lo scrivo io con i tool di editing) e lo fai girare. Il lavoro è capire
+   ogni riga prima di incollarla, non indovinarla da zero. *Regola dei 20 minuti* resta per i dubbi
+   puntuali: se ti blocchi su un pezzo preciso, chiedimelo — la domanda "perché qui uso X e non Y"
+   conta quanto il codice. **Durante lo step non apri il repo di riferimento.**
+   *(Adottato da Step 1 in poi: la specifica pura senza codice ti aveva bloccato senza farti
+   progredire — vuoi essere guidato più da vicino per ora, restando tu a scrivere/copiare tutto.)*
 5. **Cancelli**: i test dello step + `uv run ruff check src tests` + `uv run mypy src` puliti.
 6. **Diff con il riferimento** — *solo adesso* apri il file corrispondente in `hr-copilot`.
    Tre domande: cosa ho fatto diversamente? è peggio o solo diverso? cosa mi ero perso? Se importi
@@ -64,9 +68,10 @@ non sai spiegare — anche se il codice funziona.
    riesci a fare (b), rileggi la sezione "Situati nella mappa" dello step prima di chiudere. Ogni
    bug vero va in `docs/LOGBOOK.md` (data, sintomo, causa, fix): al colloquio vale più del codice.
 
-**Come lavoriamo insieme**: apri una sessione per step, mi dici "Step N". Io ti do specifica,
-concetti, firma delle funzioni e i test da far passare — non il corpo delle funzioni. A fine step
-rivedo il tuo codice e ti faccio le domande che ti farebbero al colloquio.
+**Come lavoriamo insieme**: apri una sessione per step, mi dici "Step N". Io ti do mappa, concetti,
+test da far passare, e il codice completo file per file con spiegazione inline — tu lo copi tu
+stesso nei file e verifichi che i test passino. A fine step rivedo il tuo codice e ti faccio le
+domande che ti farebbero al colloquio.
 
 ---
 
