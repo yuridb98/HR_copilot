@@ -20,6 +20,10 @@ def _offenders(data: Any, path: str = "") -> list[str]:
             found.extend(_offenders(value, key_path))
     elif isinstance(data, str) and data.startswith(FORBIDDEN_VALUE_PREFIXES):
         found.append(path)
+    elif isinstance(data, list):
+        for index, item in enumerate(data):
+            found.extend(_offenders(item, f"{path}[{index}]"))
+
     return found
 
 
@@ -29,3 +33,9 @@ def test_no_secrets_in_yaml(yaml_path: Path) -> None:
     data = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
     offenders = _offenders(data)
     assert not offenders, f"Chiavi/valori sospetti in {yaml_path.name}: {offenders}"
+
+
+@pytest.mark.unit
+def test_offenders_detects_secrets_inside_lists() -> None:
+    assert _offenders({"tools": ["sk-abc123"]}) == ["tools[0]"]
+    assert _offenders({"items": [{"password": "x"}]}) == ["items[0].password"]

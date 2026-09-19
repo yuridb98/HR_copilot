@@ -13,29 +13,38 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-load_dotenv()
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+
+def _config_dir() -> Path:
+    """Folder with base.yaml and {ENVIRONMENT}.yaml. Override it with CONFIG_DIR."""
+    override = os.environ.get("CONFIG_DIR")
+    return Path(override) if override else _PROJECT_ROOT / "config"
+
 
 class LLMSettings(BaseModel):
     primary_model: str
     router_model: str
     judge_model: str
     api_key: SecretStr
-    
+
+
 class RAGSettings(BaseModel):
     top_k: int
     chunk_size_tokens: int
     chunk_overlap_tokens: int
-    
+
+
 class YamlConfigSource(PydanticBaseSettingsSource):
     """Deep-merge YAML configuration source for Pydantic settings."""
-    
+
     def get_field_value(self, field: FieldInfo, field_name: str) -> tuple[Any, str, bool]:
-        """Retrieve the value for a given field from the YAML configuration."""
-        return None, field_name, False  # Placeholder for actual implementation
-    
+        # Required by the base class but unused: __call__ returns the whole dict at once.
+        return None, field_name, False
+
     def __call__(self) -> dict[str, Any]:
         environment = os.environ.get("ENVIRONMENT", "dev")
-        config_dir = Path(__file__).resolve().parents[3] / "config"
+        config_dir = _config_dir()
 
         base_data = self._load_yaml(config_dir / "base.yaml")
         env_data = self._load_yaml(config_dir / f"{environment}.yaml")
@@ -43,8 +52,10 @@ class YamlConfigSource(PydanticBaseSettingsSource):
 
     @staticmethod
     def _load_yaml(path: Path) -> dict[str, Any]:
-        if not path.exists():
-            return {}
+        # A missing file is a deployment error (typo in ENVIRONMENT, wrong path):
+        # failing loudly beats silently running with the wrong configuration.
+        if not path.is_file():
+            raise FileNotFoundError(f"Missing config file: {path}")
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
         return data or {}
 
@@ -57,19 +68,18 @@ class YamlConfigSource(PydanticBaseSettingsSource):
             else:
                 result[key] = value
         return result
-    
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_nested_delimiter="__",
-        env_file=".env",
-        env_file_encoding="utf-8",
         extra="ignore",
     )
-    
+
     environment: str = "dev"
     llm: LLMSettings
     rag: RAGSettings
-    
+
     @model_validator(mode="before")
     @classmethod
     def _inject_openai_api_key(cls, data: Any) -> Any:
@@ -82,7 +92,7 @@ class Settings(BaseSettings):
         llm_data = dict(data.get("llm", {}))
         llm_data.setdefault("api_key", api_key)
         return {**data, "llm": llm_data}
-    
+
     @classmethod
     def settings_customise_sources(
         cls,
@@ -99,7 +109,11 @@ class Settings(BaseSettings):
             file_secret_settings,
             YamlConfigSource(settings_cls),
         )
-        
+
+
 @lru_cache
 def get_settings() -> Settings:
+    # Loaded here, not at import time: importing this module must have no side effects.
+    # override=False (default): variables already in the process win over .env.
+    load_dotenv(_PROJECT_ROOT / ".env")
     return Settings()  # pyright: ignore[reportCallIssue]
