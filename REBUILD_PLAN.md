@@ -72,7 +72,7 @@ hr-copilot-v2/
 ├── evals/  datasets/  redteam/  metrics · judge · runner               # Step 22
 ├── data_platform/  dlt · dbt · airflow                                 # Step 23
 ├── infra/  docker/ (Dockerfile, docker-compose.yml)  helm/  terraform/  # Step 18, 24
-└── docs/  LOGBOOK.md  ARCHITECTURE.md  adr/                            # Step 1 (logbook), 25
+└── docs/  ARCHITECTURE.md  adr/                                        # Step 25
 ```
 
 **Ordine di costruzione = ordine di dipendenza.** Ogni pezzo si scrive solo dopo quelli da cui dipende:
@@ -119,7 +119,7 @@ persistence (modelli → migrazione → db/redis → repository) → ingestion �
 5. **Cancelli** dello step (vedi sotto).
 6. **Revisione**: prima l'autorevisione con la checklist, poi io rivedo il tuo codice e ti faccio le
    domande che ti farebbero al colloquio.
-7. **Commit + explain-back + ricollega la mappa + logbook.**
+7. **Commit + explain-back + ricollega la mappa.**
 
 Se ti blocchi su un punto preciso per più di ~20 minuti, chiedimelo: la domanda "perché qui X e non Y"
 vale quanto il codice. Quando mi scrivi, incolla il messaggio d'errore completo e il file coinvolto.
@@ -147,23 +147,13 @@ Prima di dirmi "ho finito", rileggi il tuo codice con questa checklist:
 Poi mi incolli il codice e io lo rivedo: cosa è solido, cosa è fragile, cosa ti chiederebbe un
 intervistatore.
 
-### Commit, explain-back, logbook
+### Commit ed explain-back
 
 - **Un commit per step**, messaggio in inglese che spiega il *perché* (non l'elenco dei file).
 - **Explain-back**: due minuti a voce, senza schermo. (a) cosa fa il pezzo e perché è fatto così;
   (b) **da dove viene chiamato e dove finisce a runtime** — non "questa funzione fa X" ma "questa
   funzione è chiamata dal nodo Y del grafo, che gira nel processo API, che in produzione è un pod
   dietro un Service Kubernetes". Se non riesci a fare (b), rileggi la "Mappa" dello step.
-- **Logbook** `docs/LOGBOOK.md`: ogni bug vero che trovi, in questo formato — al colloquio vale più del
-  codice:
-
-  ```markdown
-  ## 2026-MM-GG — titolo breve
-  - **Sintomo**: cosa hai visto (errore, test rosso, comportamento strano)
-  - **Causa**: perché succedeva davvero
-  - **Fix**: cosa hai cambiato
-  - **Cosa ho imparato**: una riga
-  ```
 
 ### Dipendenze
 
@@ -777,8 +767,7 @@ installati sull'`ExceptionMiddleware` che avvolge solo il router. `AuthMiddlewar
 `UnauthorizedError` su ogni richiesta senza token è esattamente quel caso: senza un
 `ErrorHandlingMiddleware` messo *dentro* RequestID ma *fuori* da Auth, l'utente riceve un traceback
 grezzo invece di un `problem+json`. È un errore che quasi tutti fanno la prima volta: scrivi il test
-401 **prima** di sistemare l'ordine, guarda cosa succede, poi correggi — se ti capita è una voce da
-logbook.
+401 **prima** di sistemare l'ordine, guarda cosa succede, poi correggi.
 
 **Concetti**: il tenant si legge **solo dal JWT**, mai da un header o dal body — quella è
 l'invariante di isolamento. Il rate limit salta le rotte pubbliche e tutte le GET.
@@ -857,7 +846,7 @@ thread → `completed`; (4) richiesta ferie → `awaiting_approval`, poi `/resum
 
 **Adesso serve l'API key vera** (`OPENAI_API_KEY` in `.env`). È il primo momento in cui il sistema gira
 davvero end-to-end contro un modello reale: quello che salta fuori (formato dei blocchi di risposta,
-id di modello, limiti) lo sistemiamo insieme, ed è materiale da logbook.
+id di modello, limiti) lo sistemiamo insieme.
 
 **Trappola**: il `Dockerfile` deve copiare anche `README.md`, perché `pyproject.toml` lo dichiara in
 `readme =` e hatchling fallisce la build senza.
@@ -971,7 +960,7 @@ decisioni più grosse, un `SECURITY.md` con il threat model e — la sezione che
 noti, scritti da te, senza che nessuno te li abbia chiesti**. Saper nominare con precisione i limiti del
 proprio progetto legge come molto più senior che sostenere che non ce ne siano.
 
-Poi rileggi `docs/LOGBOOK.md` e trasformalo in `INTERVIEW_NOTES.md`: mappa requisito dell'annuncio →
+Poi scrivi `INTERVIEW_NOTES.md`: mappa requisito dell'annuncio →
 file, più le domande con le risposte ancorate a file specifici. Infine facciamo una simulazione: ti
 faccio 15 domande tecniche sul *tuo* codice, senza preavviso, e vediamo dove esiti.
 
@@ -1015,7 +1004,7 @@ helm lint infra/helm/hr-copilot && helm template infra/helm/hr-copilot > /dev/nu
 ## Sei errori tipici da evitare in questo tipo di progetto
 
 Sono difetti che si trovano spesso nei progetti RAG+agente: costruiscili bene fin dall'inizio, e ognuno
-ha un test che lo dimostra. Tienili in una lista in `docs/LOGBOOK.md`: al colloquio "ecco gli errori che
+ha un test che lo dimostra. Tienili in una lista in `INTERVIEW_NOTES.md`: al colloquio "ecco gli errori che
 conoscevo e come li ho evitati" vale quanto "ecco un bug che ho trovato".
 
 1. **HITL per-tenant non applicato** — la condizione dopo `agent` deve consultare
